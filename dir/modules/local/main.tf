@@ -1,7 +1,7 @@
 resource "local_file" "address" {
     for_each = var.services
     content = each.value.address
-    filename = "instance-${terraform.workspace}/${each.value.name}.txt"
+    filename = "../instance-${terraform.workspace}/${each.value.name}.txt"
 }
 
 variable "services" {

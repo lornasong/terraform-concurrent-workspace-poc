@@ -7,60 +7,68 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 )
 
+type TerraformDriver struct {
+	workspace string
+	client    *tfexec.Terraform
+}
+
+func NewTerraformDriver(workingDir string, workspace string) (*TerraformDriver, error) {
+	tf, err := tfexec.NewTerraform(workingDir, "")
+	if err != nil {
+		return nil, err
+	}
+	env := make(map[string]string)
+	env["TF_WORKSPACE"] = workspace
+	tf.SetEnv(env)
+
+	return &TerraformDriver{
+		workspace: workspace,
+		client:    tf,
+	}, nil
+}
+
+func (td *TerraformDriver) init(ctx context.Context) error {
+	fmt.Println("init", td.workspace)
+	if err := td.client.Init(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (td *TerraformDriver) apply(ctx context.Context, errchan chan error) {
+	fmt.Println("apply", td.workspace)
+	if err := td.client.Apply(ctx); err != nil {
+		errchan <- err
+	}
+}
+
 func main() {
 
 	workingDir := "dir"
 
-	// creating a client for each workspace (east and west)
-	east, err := tfexec.NewTerraform(workingDir, "")
+	// creating a terraform driver for each workspace (east and west)
+	east, err := NewTerraformDriver(workingDir, "east")
 	if err != nil {
 		panic(err)
 	}
-	eastEnv := make(map[string]string)
-	eastEnv["TF_WORKSPACE"] = "east"
-	east.SetEnv(eastEnv)
-
-	west, err := tfexec.NewTerraform(workingDir, "")
+	west, err := NewTerraformDriver(workingDir, "west")
 	if err != nil {
 		panic(err)
 	}
-	westEnv := make(map[string]string)
-	westEnv["TF_WORKSPACE"] = "west"
-	west.SetEnv(westEnv)
 
-	// workspaces := []*tfexec.Terraform()
 	ctx := context.Background()
-	fmt.Println("initializing east client")
-	if err = east.Init(ctx); err != nil {
+	if err = east.init(ctx); err != nil {
 		panic(err)
 	}
-	fmt.Println("initializing west client")
-	if err = west.Init(ctx); err != nil {
+	if err = west.init(ctx); err != nil {
 		panic(err)
 	}
 
 	errchan := make(chan error)
-	go apply(ctx, east, errchan)
-	go apply(ctx, west, errchan)
+	go east.apply(ctx, errchan)
+	go west.apply(ctx, errchan)
 
 	for err := range errchan {
 		fmt.Println(err)
-	}
-
-	// if err = east.Apply(ctx); err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println("applying west client")
-	// wg.Add(1)
-
-	// if err = west.Apply(ctx); err != nil {
-	// 	panic(err)
-	// }
-}
-
-func apply(ctx context.Context, tf *tfexec.Terraform, errchan chan error) {
-	fmt.Println("apply")
-	if err := tf.Apply(ctx); err != nil {
-		errchan <- err
 	}
 }
