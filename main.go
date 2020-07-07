@@ -7,28 +7,69 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 )
 
-type TerraformDriver struct {
-	workspace string
-	client    *tfexec.Terraform
+func main() {
+
+	// stuff from configuration
+	workingDir := "dir"
+	instances := []string{"east", "west"}
+
+	// creating terraform drivers for each instance (east and west)
+	drivers := make([]*TerraformDriver, len(instances))
+	for ix, instance := range instances {
+		driver, err := NewTerraformDriver(workingDir, instance)
+		if err != nil {
+			panic(err)
+		}
+		drivers[ix] = driver
+	}
+
+	ctx := context.Background()
+
+	// initalize the drivers
+	for _, driver := range drivers {
+		if err := driver.init(ctx); err != nil {
+			panic(err)
+		}
+	}
+
+	// run applies concurrently
+	errchan := make(chan error)
+	for _, driver := range drivers {
+		go driver.apply(ctx, errchan)
+	}
+
+	// watch for errors
+	for err := range errchan {
+		fmt.Println(err)
+	}
 }
 
-func NewTerraformDriver(workingDir string, workspace string) (*TerraformDriver, error) {
+// TerraformDriver is a struct to hold terraform-exec client and instance
+// related information.
+type TerraformDriver struct {
+	instance string
+	client   *tfexec.Terraform
+}
+
+// NewTerraformDriver creates a driver per instance. This instance is translated into
+// terraform CLI's workspace concept
+func NewTerraformDriver(workingDir string, instance string) (*TerraformDriver, error) {
 	tf, err := tfexec.NewTerraform(workingDir, "")
 	if err != nil {
 		return nil, err
 	}
 	env := make(map[string]string)
-	env["TF_WORKSPACE"] = workspace
+	env["TF_WORKSPACE"] = instance
 	tf.SetEnv(env)
 
 	return &TerraformDriver{
-		workspace: workspace,
-		client:    tf,
+		instance: instance,
+		client:   tf,
 	}, nil
 }
 
 func (td *TerraformDriver) init(ctx context.Context) error {
-	fmt.Println("init", td.workspace)
+	fmt.Println("init", td.instance)
 	if err := td.client.Init(ctx); err != nil {
 		return err
 	}
@@ -36,39 +77,8 @@ func (td *TerraformDriver) init(ctx context.Context) error {
 }
 
 func (td *TerraformDriver) apply(ctx context.Context, errchan chan error) {
-	fmt.Println("apply", td.workspace)
+	fmt.Println("apply", td.instance)
 	if err := td.client.Apply(ctx); err != nil {
 		errchan <- err
-	}
-}
-
-func main() {
-
-	workingDir := "dir"
-
-	// creating a terraform driver for each workspace (east and west)
-	east, err := NewTerraformDriver(workingDir, "east")
-	if err != nil {
-		panic(err)
-	}
-	west, err := NewTerraformDriver(workingDir, "west")
-	if err != nil {
-		panic(err)
-	}
-
-	ctx := context.Background()
-	if err = east.init(ctx); err != nil {
-		panic(err)
-	}
-	if err = west.init(ctx); err != nil {
-		panic(err)
-	}
-
-	errchan := make(chan error)
-	go east.apply(ctx, errchan)
-	go west.apply(ctx, errchan)
-
-	for err := range errchan {
-		fmt.Println(err)
 	}
 }
