@@ -121,7 +121,8 @@ func (td *InstanceDriver) init(ctx context.Context) error {
 
 func (td *InstanceDriver) apply(ctx context.Context, errchan chan error) {
 	fmt.Println("apply", td.instance)
-	if err := td.client.Apply(ctx); err != nil {
+	file := fmt.Sprintf("instance_%s.tfvars", td.instance)
+	if err := td.client.Apply(ctx, tfexec.VarFile(file)); err != nil {
 		errchan <- err
 	}
 }

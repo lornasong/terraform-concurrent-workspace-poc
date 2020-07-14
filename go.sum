@@ -45,6 +45,8 @@ github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/terraform-exec v0.1.1 h1:soHqDz5365aZVt9pyTT7ArOXSpMqaHGMYq4VhI+HNkE=
 github.com/hashicorp/terraform-exec v0.1.1/go.mod h1:yKWvMPtkTaHpeAmllw+1qdHZ7E5u+pAZ+x8e2jQF6gM=
+github.com/hashicorp/terraform-exec v0.2.0 h1:KkCt7YdkPoOV+H83knjji0gc261M6N2vmT6VXyMCF28=
+github.com/hashicorp/terraform-exec v0.2.2 h1:5QKNlOoYFIP2BZzhlsjFdzdykwIpmWruu20Qpq0Zq24=
 github.com/hashicorp/terraform-json v0.5.0 h1:7TV3/F3y7QVSuN4r9BEXqnWqrAyeOtON8f0wvREtyzs=
 github.com/hashicorp/terraform-json v0.5.0/go.mod h1:eAbqb4w0pSlRmdvl8fOyHAi/+8jnkVYN28gJkSJrLhU=
 github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=

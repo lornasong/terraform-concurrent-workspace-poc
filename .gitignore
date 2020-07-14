@@ -12,7 +12,7 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 terraform
 dir/.terraform
 dir/terraform.tfstate.d

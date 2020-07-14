@@ -3,6 +3,13 @@ terraform {
 }
 
 module "local" {
-    source = "./modules/local"
-    services = { for name in var.service_mapping[terraform.workspace] : name => var.services[name]}
+  source = "./modules/local"
+  services = var.services
+  instance = var.instance
+}
+
+provider "local" {
+  # Example of how provider instance variables would be consumed
+  # if the provider supported them. (local does not)
+  # address = var.provider_address
 }

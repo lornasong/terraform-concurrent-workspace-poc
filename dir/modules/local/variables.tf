@@ -11,11 +11,5 @@ variable "services" {
 variable "instance" {
   description = "instance name"
   type = string
-  default = "east"
-}
-
-variable "provider_address" {
-  description = "provider instance's address"
-  type = string
   default = ""
 }
